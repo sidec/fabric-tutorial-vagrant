@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VAGRANTFILE_API_VERSION = "2"
+# VAGRANTFILE_API_VERSION = "2"
 ARCH = "x86_64"
-FABRIC_DOCKER_VER = "1.0.4"
-COMPOSER_VER = "0.15.2"
+FABRIC_DOCKER_VER = "1.1.0"
+COMPOSER_VER = "0.19.9"
 FABRIC_SAMPLE_VER = "v1.0.2"
 
 $script = <<SCRIPT
@@ -88,16 +88,19 @@ SCRIPT
 
 
 Vagrant.configure('2') do |config|
-  config.vm.box = "ubuntu/xenial64"
-  config.vm.provider "virtualbox" do |v|
-    v.memory = 4096
-    v.cpus = 4
+  config.vm.box = "generic/ubuntu1604"
+  config.vm.provider "hyperv"
+  config.vm.synced_folder ".", "/vagrant", type: "smb"
+  config.vm.provision "shell", inline: $script
+  config.vm.network "forwarded_port", guest: 8080, host: 8080  #composer
+  config.vm.network "forwarded_port", guest: 8181, host: 8181  #cloud9-ide
+  config.vm.network "forwarded_port", guest: 9090, host: 9090  #custom-ui
+  config.vm.network "forwarded_port", guest: 3000, host: 3000  #marbles-ui
+  config.vm.network "forwarded_port", guest: 3001, host: 3001  #marbles-ui
+
+  config.vm.provider "hyperv" do |h|
+    h.enable_virtualization_extensions = true
+    h.differencing_disk = true
   end
 
-  config.vm.provision "shell", inline: $script
-  config.vm.network :forwarded_port, guest: 8080, host: 8080  #composer
-  config.vm.network :forwarded_port, guest: 8181, host: 8181  #cloud9-ide
-  config.vm.network :forwarded_port, guest: 9090, host: 9090  #custom-ui
-  config.vm.network :forwarded_port, guest: 3000, host: 3000  #marbles-ui
-  config.vm.network :forwarded_port, guest: 3001, host: 3001  #marbles-ui
 end
